@@ -24,6 +24,24 @@ class Cell extends React.Component {
     window.document.removeEventListener('unselectAll', this.handleUnselectAll);
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    const { value, editing, selected } = this.state;
+
+    // Has a formula? May need to be updated.
+    if (value && value[0] === '=') return true;
+
+    // State or props changed, needs to update
+    if (
+      nextState.value !== value ||
+      nextProps.value !== value ||
+      nextState.editing !== editing ||
+      nextState.selected !== selected
+    )
+      return true;
+
+    return false;
+  }
+
   // Before updating, execute the formula on the Cell value to calculate the
   // `display` value. Especially useful when a redraw is pushed upon this
   // cell when editing another cell that this might depend upon.
@@ -100,10 +118,24 @@ class Cell extends React.Component {
     this.setState({ selected: true, editing: true });
   };
 
-  determineDisplay = ({ x, y }, value) => value;
+  determineDisplay = ({ x, y }, value) => {
+    if (value[0] === '=') {
+      const res = this.props.executeFormula((x, y), value.substring(1));
+
+      if (res.error) {
+        console.log({ res });
+        return '#INVALID';
+      }
+
+      return res.result;
+    }
+
+    return value;
+  };
 
   setCSS = () => {
     const { x, y } = this.props;
+    const { selected, editing } = this.state;
 
     const css = {
       border: '1px solid #cacaca',
@@ -124,8 +156,20 @@ class Cell extends React.Component {
 
     if (x === 0 || y === 0) {
       css.textAlign = 'center';
-      css.backgroundColor = '#f0f0f0';
+      css.backgroundColor = '#ffffa0';
       css.fontWeight = 'bold';
+    }
+
+    if (selected) {
+      css.outlineColor = 'lightblue';
+      css.outlineStyle = 'dotted';
+    }
+
+    if (editing) {
+      css.outlineColor = 'blue';
+      css.backgroundColor = '#e8ffff';
+    } else if (!isNaN(parseInt(this.display, 10))) {
+      css.textAlign = 'right';
     }
 
     return css;
@@ -133,7 +177,7 @@ class Cell extends React.Component {
 
   render() {
     const { x, y } = this.props;
-    const { selected, editing, value } = this.state;
+    const { editing, value } = this.state;
 
     const css = this.setCSS();
 
@@ -147,11 +191,6 @@ class Cell extends React.Component {
           {alpha[x]}
         </span>
       );
-    }
-
-    if (selected) {
-      css.outlineColor = 'lightblue';
-      css.outlineStyle = 'dotted';
     }
 
     if (editing) {
