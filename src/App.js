@@ -6,7 +6,7 @@ import Table from './components/Table';
 const App = () => {
   return (
     <div style={{ width: 'content-max', margin: '0 auto' }}>
-      <Table x={6} y={10} />
+      <Table x={10} y={10} />
     </div>
   );
 };

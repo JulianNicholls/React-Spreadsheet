@@ -7,7 +7,7 @@ class Cell extends React.Component {
     this.state = {
       editing: false,
       selected: false,
-      value: props.value
+      value: props.value,
     };
 
     this.display = this.determineDisplay({ x: props.x, y: props.y }, props.value);
@@ -45,7 +45,7 @@ class Cell extends React.Component {
   // Before updating, execute the formula on the Cell value to calculate the
   // `display` value. Especially useful when a redraw is pushed upon this
   // cell when editing another cell that this might depend upon.
-  componentWillUpdate() {
+  UNSAFE_componentWillUpdate() {
     const { x, y } = this.props;
 
     this.display = this.determineDisplay({ x, y }, this.state.value);
@@ -120,14 +120,19 @@ class Cell extends React.Component {
 
   determineDisplay = ({ x, y }, value) => {
     if (value[0] === '=') {
-      const res = this.props.executeFormula((x, y), value.substring(1));
+      try {
+        const res = this.props.executeFormula((x, y), value.substring(1));
 
-      if (res.error) {
-        console.log({ res });
-        return '#INVALID';
+        if (res.error && !this.state.editing) {
+          console.error({ res });
+          return '#INVALID';
+        }
+
+        return res.result;
+      } catch (err) {
+        console.error('Caught', err);
+        return '#ERROR';
       }
-
-      return res.result;
     }
 
     return value;
@@ -151,7 +156,7 @@ class Cell extends React.Component {
       position: 'relative',
       textAlign: 'left',
       verticalAlign: 'top',
-      width: '80px'
+      width: '80px',
     };
 
     if (x === 0 || y === 0) {

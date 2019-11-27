@@ -2,16 +2,15 @@ import React from 'react';
 
 import Cell from './Cell';
 
-const Row = props => {
+const Row = ({
+  x: cols,
+  y,
+  handleChangedCell,
+  updateCells,
+  executeFormula,
+  rowData,
+}) => {
   const cells = [];
-  const {
-    x: cols,
-    y,
-    handleChangedCell,
-    updateCells,
-    executeFormula,
-    rowData
-  } = props;
 
   for (let x = 0; x < cols; ++x) {
     cells.push(

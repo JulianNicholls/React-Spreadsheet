@@ -17,12 +17,12 @@ class Table extends Component {
       const { data } = this.state;
 
       if (x > this.props.x || y > this.props.y) {
-        console.log('cCV out of range');
+        console.error('cCV out of range');
         throw this.parser.Error(this.parser.ERROR_NOT_AVAILABLE);
       }
 
       if (this.parser.cell.x === x && this.parser.cell.y === y) {
-        console.log('cCV circular ref');
+        console.error('cCV circular ref');
         throw this.parser.Error(this.parser.ERROR_REF);
       }
 
@@ -37,7 +37,7 @@ class Table extends Component {
       const ey = endCellCoord.row.index + 1;
       const ex = endCellCoord.column.index + 1;
 
-      console.log({ sy, sx, ey, ex });
+      // console.log({ sy, sx, ey, ex });
 
       const fragment = [];
       const { data } = this.state;
@@ -58,7 +58,7 @@ class Table extends Component {
             const res = this.executeFormula({ x, y }, value.substring(1));
 
             if (res.error) {
-              console.log('cRV', { res });
+              console.error('cRV', { res });
               throw this.parser.Error(res.error);
             }
 
@@ -94,12 +94,7 @@ class Table extends Component {
 
     let res = this.parser.parse(value);
 
-    if (res.error) {
-      console.log('eF', { res });
-      return res;
-    }
-
-    if (res.result.toString() === '') return res;
+    if (res.error || res.result.toString() === '') return res;
 
     if (res.result.toString()[0] === '=')
       res = this.executeFormula(cell, res.result.toString().substring(1));

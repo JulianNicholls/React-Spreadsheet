@@ -34,9 +34,9 @@ parser.on('callRangeValue', (startCoord, endCoord, done) => {
 function showResult(parser, content) {
   const res = parser.parse(content);
 
-  if (res.error) return console.log(`'${content}' ERROR `, res.error);
+  if (res.error) return console.log(`'${content}' ERROR  ${res.error}`);
 
-  console.log(`'${content}' =`, res.result);
+  console.log(`'${content}' = ${res.result}`);
 }
 
 showResult(parser, '1 + 5 / 10');
