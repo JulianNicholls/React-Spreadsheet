@@ -4,8 +4,8 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Git client
 
-I have used Git at the command-line for 10 years. Over that time, 
-I have tried many different graphical shells for Git, without finding one 
+I have used Git at the command-line for more than 10 years. Over that time,
+I have tried many different graphical shells for Git, without finding one
 that was easier and nicer to use than the command-line (in my view).
 
 I have now found that [GitKraken](https://www.gitkraken.com) is an excellent
