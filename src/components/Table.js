@@ -1,29 +1,25 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Parser as FormulaParser } from 'hot-formula-parser';
 
 import Row from './Row';
 
-class Table extends Component {
-  constructor(props) {
-    super(props);
+const Table = (props) => {
+  const [data, setData] = useState({});
+  const [parser, setParser] = useState(new FormulaParser());
 
-    this.state = { data: {} };
-
-    this.parser = new FormulaParser();
-
-    this.parser.on('callCellValue', (CellCoord, done) => {
+  useEffect(() => {
+    parser.on('callCellValue', (CellCoord, done) => {
       const y = CellCoord.row.index + 1;
       const x = CellCoord.column.index + 1;
-      const { data } = this.state;
 
-      if (x > this.props.x || y > this.props.y) {
+      if (x > props.x || y > props.y) {
         console.error('cCV out of range');
-        throw this.parser.Error(this.parser.ERROR_NOT_AVAILABLE);
+        throw parser.Error(parser.ERROR_NOT_AVAILABLE);
       }
 
-      if (this.parser.cell.x === x && this.parser.cell.y === y) {
+      if (parser.cell.x === x && parser.cell.y === y) {
         console.error('cCV circular ref');
-        throw this.parser.Error(this.parser.ERROR_REF);
+        throw parser.Error(parser.ERROR_REF);
       }
 
       if (!data[y] || !data[y][x]) return done('');
@@ -31,7 +27,7 @@ class Table extends Component {
       done(data[y][x]);
     });
 
-    this.parser.on('callRangeValue', (startCellCoord, endCellCoord, done) => {
+    parser.on('callRangeValue', (startCellCoord, endCellCoord, done) => {
       const sy = startCellCoord.row.index + 1;
       const sx = startCellCoord.column.index + 1;
       const ey = endCellCoord.row.index + 1;
@@ -40,7 +36,6 @@ class Table extends Component {
       // console.log({ sy, sx, ey, ex });
 
       const fragment = [];
-      const { data } = this.state;
 
       for (let y = sy; y <= ey; ++y) {
         const row = data[y];
@@ -55,11 +50,11 @@ class Table extends Component {
           if (!value) value = '';
 
           if (value[0] === '=') {
-            const res = this.executeFormula({ x, y }, value.substring(1));
+            const res = executeFormula({ x, y }, value.substring(1));
 
             if (res.error) {
               console.error('cRV', { res });
-              throw this.parser.Error(res.error);
+              throw parser.Error(res.error);
             }
 
             value = res.result;
@@ -73,56 +68,54 @@ class Table extends Component {
 
       done(fragment);
     });
-  }
+  }, []);
 
-  handleChangedCell = ({ x, y }, value) => {
-    const modifiedData = { ...this.state.data };
+  const handleChangedCell = ({ x, y }, value) => {
+    const modifiedData = { ...data };
 
     if (!modifiedData[y]) modifiedData[y] = {};
 
     modifiedData[y][x] = value;
 
-    this.setState({ data: modifiedData });
+    setData(modifiedData);
   };
 
-  updateCells = () => {
+  const updateCells = () => {
     this.forceUpdate();
   };
 
-  executeFormula = (cell, value) => {
-    this.parser.cell = cell;
+  const executeFormula = (cell, value) => {
+    parser.cell = cell;
 
-    let res = this.parser.parse(value);
+    let res = parser.parse(value);
 
     if (res.error || res.result.toString() === '') return res;
 
     if (res.result.toString()[0] === '=')
-      res = this.executeFormula(cell, res.result.toString().substring(1));
+      res = executeFormula(cell, res.result.toString().substring(1));
 
     return res;
   };
 
-  render() {
-    const rows = [];
+  const rows = [];
 
-    for (let y = 0; y < this.props.y + 1; ++y) {
-      const rowData = this.state.data[y] || {};
+  for (let y = 0; y < props.y + 1; ++y) {
+    const rowData = data[y] || {};
 
-      rows.push(
-        <Row
-          handleChangedCell={this.handleChangedCell}
-          updateCells={this.updateCells}
-          executeFormula={this.executeFormula}
-          key={y}
-          y={y}
-          x={this.props.x + 1}
-          rowData={rowData}
-        />
-      );
-    }
-
-    return <div>{rows}</div>;
+    rows.push(
+      <Row
+        handleChangedCell={handleChangedCell}
+        updateCells={updateCells}
+        executeFormula={executeFormula}
+        key={y}
+        y={y}
+        x={props.x + 1}
+        rowData={rowData}
+      />
+    );
   }
-}
+
+  return <div>{rows}</div>;
+};
 
 export default Table;

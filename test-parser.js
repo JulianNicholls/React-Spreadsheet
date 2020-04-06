@@ -3,8 +3,6 @@ const Parser = require('hot-formula-parser').Parser;
 const parser = new Parser();
 
 parser.on('callCellValue', (cellCoord, done) => {
-  console.log('cCV', cellCoord);
-
   done(cellCoord.row.index * cellCoord.column.index);
 });
 
@@ -13,8 +11,6 @@ parser.on('callRangeValue', (startCoord, endCoord, done) => {
   const { index: ex } = endCoord.column;
   const { index: sy } = startCoord.row;
   const { index: ey } = endCoord.row;
-
-  console.log('cRV', startCoord, endCoord, { sx, sy, ex, ey });
 
   const retval = [];
 
