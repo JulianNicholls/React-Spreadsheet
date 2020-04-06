@@ -1,3 +1,5 @@
+declare module 'hot-formula-parser';
+
 type XY = { x: number; y: number };
 
 type RowType = Array<string>;
